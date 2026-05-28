@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "keyword-labeler"
-version = "1.0.1"
+version = "1.0.2"
 description = "SEO keyword grouping plugin for Claude Desktop — tự động phân nhóm keyword bằng Claude Batch API"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -47,7 +47,9 @@ include = [
     "src/",
     "skills/",
     "agents/",
+    "cowork-plugin/",
     "install.sh",
+    "package-plugin.sh",
     "README.md",
     "LICENSE",
     "pyproject.toml",

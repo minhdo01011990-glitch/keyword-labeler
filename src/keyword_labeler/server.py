@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import random
 import threading
@@ -14,6 +15,8 @@ try:
     import anthropic
 except ImportError as e:
     raise ImportError("anthropic is required: pip install anthropic") from e
+
+_KEY_FILE = Path.home() / ".anthropic_key"
 
 from mcp.server.fastmcp import FastMCP
 
@@ -55,6 +58,11 @@ _state_lock = threading.Lock()
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 def _get_client() -> anthropic.Anthropic:
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key and _KEY_FILE.exists():
+        api_key = _KEY_FILE.read_text().strip()
+    if api_key:
+        return anthropic.Anthropic(api_key=api_key)
     return anthropic.Anthropic()
 
 
@@ -96,6 +104,75 @@ def _group_summary_rows() -> list[dict]:
         {"group": g, "count": c, "volume": volumes[g]}
         for g, c in counter.most_common()
     ]
+
+
+# ── Tool 0: check_api_key ─────────────────────────────────────────────────────
+@mcp.tool()
+def check_api_key() -> str:
+    """
+    Check if ANTHROPIC_API_KEY is configured and working.
+
+    Reads from env var first, then ~/.anthropic_key file.
+    Returns: has_key (bool), is_valid (bool), source ("env" | "file" | "none").
+    """
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    source = "env" if api_key else "none"
+
+    if not api_key and _KEY_FILE.exists():
+        api_key = _KEY_FILE.read_text().strip()
+        source = "file" if api_key else "none"
+
+    if not api_key:
+        return _ok({"has_key": False, "is_valid": False, "source": "none"})
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+        return _ok({"has_key": True, "is_valid": True, "source": source})
+    except anthropic.AuthenticationError:
+        return _ok({"has_key": True, "is_valid": False, "source": source,
+                    "error": "API key không hợp lệ"})
+    except Exception as e:
+        return _ok({"has_key": True, "is_valid": False, "source": source, "error": str(e)})
+
+
+# ── Tool 0b: save_api_key ─────────────────────────────────────────────────────
+@mcp.tool()
+def save_api_key(api_key: str) -> str:
+    """
+    Validate and save ANTHROPIC_API_KEY to ~/.anthropic_key.
+
+    Tests the key before saving. On success, also sets it in the current process
+    environment so subsequent tools use it without restart.
+    Returns: saved (bool), is_valid (bool), file (path).
+    """
+    key = api_key.strip()
+    if not key:
+        return _err("API key không được để trống.")
+
+    try:
+        client = anthropic.Anthropic(api_key=key)
+        client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+    except anthropic.AuthenticationError:
+        return _err("API key không hợp lệ. Kiểm tra lại tại https://console.anthropic.com/settings/keys")
+    except Exception as e:
+        return _err(f"Lỗi kiểm tra API key: {e}")
+
+    try:
+        _KEY_FILE.write_text(key)
+        os.environ["ANTHROPIC_API_KEY"] = key
+    except Exception as e:
+        return _err(f"Lỗi lưu API key: {e}")
+
+    return _ok({"saved": True, "is_valid": True, "file": str(_KEY_FILE)})
 
 
 # ── MCP Prompt ────────────────────────────────────────────────────────────────

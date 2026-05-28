@@ -43,23 +43,43 @@ Script tự động:
 4. Cài SKILL.md vào `~/.claude/skills/keyword/` để kích hoạt lệnh `/keyword`
 5. Restart Claude Desktop (macOS)
 
-### Bước 2 — Thêm API key
+### Bước 2 — Upload plugin vào Claude Desktop (1 lần duy nhất)
 
-Đặt `ANTHROPIC_API_KEY` trong environment:
+1. Tải file [`keyword-labeler.plugin`](https://github.com/minhdo01011990-glitch/keyword-labeler/releases/latest) từ trang Releases
+2. Mở Claude Desktop → **Cowork → Settings → Plugins → Upload** → chọn file vừa tải
+
+Sau bước này, gõ `/keyword` trong Cowork là dùng được.
+
+> **Claude Code CLI**: không cần bước này — lệnh `/keyword` hoạt động ngay sau Bước 1.
+
+---
+
+## API Key
+
+Khi gõ `/keyword` lần đầu, plugin tự kiểm tra API key. Nếu chưa có, Claude sẽ hỏi và lưu lại tự động.
+
+Hoặc set thủ công:
 
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."   # thêm vào ~/.zshrc hoặc ~/.bashrc
 ```
 
-Sau đó gõ `/keyword` trong Claude Desktop hoặc Claude Code.
-
 ---
 
 ## Cập nhật lên phiên bản mới
 
+### Bước 1 — Cập nhật MCP server
+
 ```bash
 bash <(curl -sSL https://raw.githubusercontent.com/minhdo01011990-glitch/keyword-labeler/main/install.sh)
 ```
+
+### Bước 2 — Cập nhật plugin Cowork
+
+*(Chỉ cần khi SKILL.md thay đổi — xem Release Notes để biết)*
+
+1. Tải `keyword-labeler.plugin` mới từ [Releases](https://github.com/minhdo01011990-glitch/keyword-labeler/releases/latest)
+2. Cowork → Settings → Plugins → **xóa plugin cũ** → **Upload** file mới
 
 ---
 

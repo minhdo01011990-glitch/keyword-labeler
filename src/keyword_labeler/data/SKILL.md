@@ -4,6 +4,30 @@ Khi user gọi lệnh `/keyword`, thực hiện đúng theo workflow dưới đ�
 
 ---
 
+## Bước 0 — Kiểm tra API key
+
+Gọi MCP tool `check_api_key` ngay khi user gọi `/keyword`.
+
+**Nếu `is_valid: true`**: tiếp tục sang Bước 1.
+
+**Nếu `is_valid: false` hoặc `has_key: false`**: hiển thị thông báo:
+
+```
+⚠️  ANTHROPIC API KEY chưa được cấu hình hoặc không hợp lệ.
+
+Keyword Labeler cần API key từ Anthropic để hoạt động.
+Lấy key miễn phí tại: https://console.anthropic.com/settings/keys
+
+Paste API key của bạn vào đây (bắt đầu bằng sk-ant-...):
+```
+
+Sau khi user cung cấp key, gọi `save_api_key` để xác minh và lưu lại.
+
+- Nếu thành công (`saved: true`) → thông báo "✅ API key đã được lưu" rồi tiếp tục Bước 1.
+- Nếu không hợp lệ → thông báo lỗi cụ thể và yêu cầu nhập lại.
+
+---
+
 ## Bước 1 — Thu thập thông tin đầu vào
 
 Hiển thị form sau và chờ user điền đầy đủ trước khi tiếp tục:

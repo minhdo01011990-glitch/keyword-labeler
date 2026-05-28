@@ -1,92 +1,134 @@
-import importlib.resources
+"""keyword-labeler-install — configures Claude Desktop and Claude Code CLI."""
 import json
 import os
+import platform
 import shutil
-import sys
+import subprocess
+import time
 from pathlib import Path
 
+_BOLD = "\033[1m"
+_GREEN = "\033[32m"
+_YELLOW = "\033[33m"
+_RESET = "\033[0m"
+_DIV = "━" * 53
 
-def get_claude_desktop_config_path() -> Path:
-    if sys.platform == "darwin":
-        return Path.home() / "Library" / "Application Support" / "Claude" / "claude_desktop_config.json"
-    elif sys.platform == "win32":
+
+def _ok(msg: str) -> None:
+    print(f"  {_BOLD}{_GREEN}✅ {msg}{_RESET}")
+
+
+def _warn(msg: str) -> None:
+    print(f"  {_YELLOW}⚠️  {msg}{_RESET}")
+
+
+def _step(n: int, total: int, msg: str) -> None:
+    print(f"\n{_BOLD}{n}/{total} {msg}{_RESET}")
+
+
+def _get_desktop_config_path() -> Path:
+    system = platform.system()
+    if system == "Darwin":
+        return Path.home() / "Library/Application Support/Claude/claude_desktop_config.json"
+    if system == "Windows":
         appdata = os.environ.get("APPDATA", "")
-        return Path(appdata) / "Claude" / "claude_desktop_config.json" if appdata else Path.home() / "AppData" / "Roaming" / "Claude" / "claude_desktop_config.json"
-    else:
-        return Path.home() / ".config" / "Claude" / "claude_desktop_config.json"
+        return (
+            Path(appdata) / "Claude/claude_desktop_config.json"
+            if appdata
+            else Path.home() / "AppData/Roaming/Claude/claude_desktop_config.json"
+        )
+    return Path.home() / ".config/Claude/claude_desktop_config.json"
 
 
-def get_server_command() -> str:
-    cmd = shutil.which("keyword-labeler-server")
-    if cmd:
-        return cmd
-    # Fallback: run as module
-    return f"{sys.executable} -m keyword_labeler.server"
+def _get_binary() -> str:
+    return shutil.which("keyword-labeler-server") or "keyword-labeler-server"
 
 
-def main():
-    server_cmd = get_server_command()
-
-    # --- Claude Desktop config ---
-    config_path = get_claude_desktop_config_path()
+def _configure_desktop(binary: str) -> None:
+    config_path = _get_desktop_config_path()
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    config = {}
+    config: dict = {}
     if config_path.exists():
-        with open(config_path, encoding="utf-8") as f:
-            try:
-                config = json.load(f)
-            except json.JSONDecodeError:
-                config = {}
+        try:
+            config = json.loads(config_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
 
-    config.setdefault("mcpServers", {})
-    config["mcpServers"]["keyword-labeler"] = {
-        "command": server_cmd,
-    }
+    config.setdefault("mcpServers", {})["keyword-labeler"] = {"command": binary}
+    config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    _ok("claude_desktop_config.json")
 
-    with open(config_path, "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=2, ensure_ascii=False)
 
-    print(f"  Claude Desktop config updated: {config_path}")
+def _configure_claude_code(binary: str) -> None:
+    settings_path = Path.home() / ".claude/settings.json"
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # --- .mcp.json for Claude Code ---
-    # KEYWORD_LABELER_PROJECT_DIR is set by install.sh so this works for both
-    # editable and non-editable installs.
-    project_dir_env = os.environ.get("KEYWORD_LABELER_PROJECT_DIR")
-    if project_dir_env:
-        mcp_json_path = Path(project_dir_env) / ".mcp.json"
-    else:
-        mcp_json_path = Path(__file__).parent.parent.parent / ".mcp.json"
-    mcp_config = {
-        "mcpServers": {
-            "keyword-labeler": {
-                "command": server_cmd,
-            }
-        }
-    }
-    with open(mcp_json_path, "w", encoding="utf-8") as f:
-        json.dump(mcp_config, f, indent=2, ensure_ascii=False)
+    settings: dict = {}
+    if settings_path.exists():
+        try:
+            settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
 
-    print(f"  .mcp.json updated: {mcp_json_path}")
+    settings.setdefault("mcpServers", {})["keyword-labeler"] = {"command": binary}
+    settings_path.write_text(json.dumps(settings, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    _ok("~/.claude/settings.json")
 
-    # --- SKILL.md for Claude Code slash command ---
-    skill_dst = Path.home() / ".claude" / "skills" / "keyword" / "SKILL.md"
+
+def _install_skill() -> None:
+    skill_dst = Path.home() / ".claude/skills/keyword/SKILL.md"
     try:
-        # Try to read from package data first (PyPI install)
         skill_src = Path(__file__).parent / "data" / "SKILL.md"
         if not skill_src.exists():
-            # Fallback: project root (git clone install)
-            project_root = Path(project_dir_env) if project_dir_env else Path(__file__).parent.parent.parent
+            project_root = Path(__file__).parent.parent.parent
             skill_src = project_root / "skills" / "keyword" / "SKILL.md"
 
         if skill_src.exists():
             skill_dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(skill_src, skill_dst)
-            print(f"  SKILL.md installed: {skill_dst}")
+            _ok(f"SKILL.md → {skill_dst}")
         else:
-            print("  SKILL.md not found — skipping Claude Code skill setup")
+            _warn("SKILL.md not found — skipping Claude Code skill setup")
     except Exception as e:
-        print(f"  Warning: could not install SKILL.md: {e}")
+        _warn(f"Could not install SKILL.md: {e}")
+
+
+def _restart_claude() -> None:
+    if platform.system() != "Darwin":
+        _warn("Restart Claude Desktop thủ công để áp dụng thay đổi")
+        return
+    subprocess.run(["osascript", "-e", 'tell application "Claude" to quit'], capture_output=True)
+    time.sleep(3)
+    subprocess.run(["open", "-a", "Claude"], capture_output=True)
+    _ok("Claude Desktop đã restart")
+
+
+def main() -> None:
+    print(f"\n{_BOLD}{_DIV}{_RESET}")
+    print(f"{_BOLD}  Keyword Labeler — Install{_RESET}")
+    print(f"{_BOLD}{_DIV}{_RESET}")
+
+    binary = _get_binary()
+    print(f"\n  Binary: {binary}")
+
+    _step(1, 3, "Cấu hình Claude Desktop MCP server...")
+    _configure_desktop(binary)
+
+    _step(2, 3, "Cấu hình Claude Code CLI...")
+    _configure_claude_code(binary)
+
+    _step(3, 3, "Cài đặt SKILL.md cho lệnh /keyword...")
+    _install_skill()
+
+    _restart_claude()
+
+    print(f"\n{_BOLD}{_GREEN}{_DIV}{_RESET}")
+    print(f"{_BOLD}{_GREEN}  Cài đặt hoàn tất!{_RESET}")
+    print(f"{_BOLD}{_GREEN}{_DIV}{_RESET}")
+    print(f"\n  Claude Desktop → gõ /keyword để bắt đầu")
+    print(f"  Claude Code CLI → gõ /keyword (sau khi mở terminal mới)")
+    print(f"\n{_BOLD}{_GREEN}{_DIV}{_RESET}\n")
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "keyword-labeler"
-version = "1.0.0"
+version = "1.0.1"
 description = "SEO keyword grouping plugin for Claude Desktop — tự động phân nhóm keyword bằng Claude Batch API"
 readme = "README.md"
 license = { file = "LICENSE" }

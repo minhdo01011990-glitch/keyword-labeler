@@ -1,42 +1,34 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# install.sh — Cài đặt Keyword Labeler Plugin
+# Dùng: bash <(curl -sSL https://raw.githubusercontent.com/minhdo01011990-glitch/keyword-labeler/main/install.sh)
+set -euo pipefail
 
-echo "=== Keyword Labeler Installer ==="
+BOLD="\033[1m"; GREEN="\033[32m"; RED="\033[31m"; RESET="\033[0m"
 
-# Detect Python 3.9+
+# Tìm Python 3.9+ — thử theo thứ tự ưu tiên
 PYTHON=""
-for py in python3.13 python3.12 python3.11 python3.10 python3.9 python3 python; do
-    if command -v "$py" &>/dev/null; then
-        OK=$("$py" -c "import sys; print('ok' if sys.version_info >= (3,9) else '')" 2>/dev/null)
-        if [ "$OK" = "ok" ]; then
-            PYTHON="$py"
+for candidate in python3.13 python3.12 python3.11 python3.10 python3.9 python3 python; do
+    if command -v "$candidate" &>/dev/null; then
+        _major=$("$candidate" -c "import sys; print(sys.version_info.major)" 2>/dev/null || echo 0)
+        _minor=$("$candidate" -c "import sys; print(sys.version_info.minor)" 2>/dev/null || echo 0)
+        if [[ "$_major" -eq 3 && "$_minor" -ge 9 ]]; then
+            PYTHON="$candidate"
             break
         fi
     fi
 done
 
-if [ -z "$PYTHON" ]; then
-    echo "Error: Python 3.9+ is required but not found."
+if [[ -z "$PYTHON" ]]; then
+    echo -e "${RED}❌ Không tìm thấy Python 3.9+. Cài đặt tại https://python.org/downloads/${RESET}"
+    echo "   (python3 --version hiện tại: $(python3 --version 2>/dev/null || echo 'không tìm thấy'))"
     exit 1
 fi
+echo -e "${BOLD}Python:${RESET} $("$PYTHON" --version)"
 
-echo "Using $($PYTHON --version)"
+echo -e "${BOLD}Cài đặt keyword-labeler từ PyPI...${RESET}"
+"$PYTHON" -m pip install --quiet --upgrade keyword-labeler
 
-# Install package in editable mode from this directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-echo "Installing from $SCRIPT_DIR ..."
-$PYTHON -m pip install -e "$SCRIPT_DIR" --quiet
-
-# Register MCP server into Claude Desktop config
-echo "Registering MCP server..."
-export KEYWORD_LABELER_PROJECT_DIR="$SCRIPT_DIR"
-# Prefer module invocation (works regardless of PATH) with script as fallback
-if command -v keyword-labeler-install &>/dev/null; then
-    keyword-labeler-install
-else
-    $PYTHON -m keyword_labeler.install
-fi
-
-echo ""
-echo "Done! Please restart Claude Desktop to apply changes."
-echo "Then type /keyword in Claude to start."
+echo -e "${BOLD}Chạy installer...${RESET}"
+"$("$PYTHON" -c "import sysconfig; print(sysconfig.get_path('scripts'))")/keyword-labeler-install" 2>/dev/null \
+    || "$("$PYTHON" -m site --user-base 2>/dev/null)/bin/keyword-labeler-install" 2>/dev/null \
+    || keyword-labeler-install

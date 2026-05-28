@@ -30,24 +30,36 @@
 
 ## Cài đặt
 
-### Cách 1 — PyPI (khuyến nghị)
+### Bước 1 — Chạy 1 lệnh terminal
 
 ```bash
-pip install keyword-labeler
-keyword-labeler-install
+bash <(curl -sSL https://raw.githubusercontent.com/minhdo01011990-glitch/keyword-labeler/main/install.sh)
 ```
 
-Sau đó **restart Claude Desktop** và gõ `/keyword`.
+Script tự động:
+1. Phát hiện Python 3.9+ và cài `keyword-labeler` từ PyPI
+2. Cấu hình MCP server vào `claude_desktop_config.json` (Claude Desktop)
+3. Cấu hình MCP server vào `~/.claude/settings.json` (Claude Code CLI)
+4. Cài SKILL.md vào `~/.claude/skills/keyword/` để kích hoạt lệnh `/keyword`
+5. Restart Claude Desktop (macOS)
 
-### Cách 2 — GitHub (clone & install)
+### Bước 2 — Thêm API key
+
+Đặt `ANTHROPIC_API_KEY` trong environment:
 
 ```bash
-git clone https://github.com/minhdo01011990-glitch/keyword-labeler.git
-cd keyword-labeler
-bash install.sh
+export ANTHROPIC_API_KEY="sk-ant-..."   # thêm vào ~/.zshrc hoặc ~/.bashrc
 ```
 
-Sau đó **restart Claude Desktop** và gõ `/keyword`.
+Sau đó gõ `/keyword` trong Claude Desktop hoặc Claude Code.
+
+---
+
+## Cập nhật lên phiên bản mới
+
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/minhdo01011990-glitch/keyword-labeler/main/install.sh)
+```
 
 ---
 

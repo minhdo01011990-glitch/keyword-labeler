@@ -1,3 +1,16 @@
+---
+name: keyword
+description: >
+  Use this skill when the user types /keyword or wants to group SEO keywords,
+  "phân nhóm keyword", "gom nhóm keyword", "phân loại keyword SEO",
+  "bắt đầu phân nhóm", "keyword labeling", "group keywords",
+  "label keywords", "phân tích keyword", "xử lý file keyword".
+  Triggers the full keyword clustering pipeline: input collection →
+  filter → group → review → export Excel/Markdown.
+metadata:
+  version: "1.0.3"
+---
+
 # Keyword Labeler
 
 Khi user gọi lệnh `/keyword`, thực hiện đúng theo workflow dưới đây. Không bỏ qua bước nào.

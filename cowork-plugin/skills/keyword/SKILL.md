@@ -87,9 +87,22 @@ Vui lòng cung cấp thông tin sau:
     Xử lý thử 100 keyword đầu tiên để kiểm tra chất lượng
     trước khi chạy toàn bộ danh sách.
     → 
+
+[8] Thông tin lưu ý (tuỳ chọn)
+    Các yêu cầu bổ sung, ưu tiên đặc biệt, hoặc điều chỉnh riêng cho lần chạy này.
+    Ví dụ: "ưu tiên nhóm theo intent thương mại", "không tạo nhóm có ít hơn 10 keyword",
+            "tên nhóm phải ngắn gọn tối đa 5 từ", "bỏ qua các keyword chứa tên đối thủ".
+    Nhập "bỏ qua" nếu không có yêu cầu gì thêm.
+    → 
 ```
 
-Sau khi user nhập xong, xác nhận lại toàn bộ thông tin một lần trước khi xử lý.
+Sau khi user nhập xong, phân tích mục [8] và xác định các điều chỉnh cần áp dụng:
+- Nếu user không có lưu ý → tiếp tục bình thường.
+- Nếu có lưu ý → tóm tắt ngắn cách bạn sẽ điều chỉnh workflow, ví dụ:
+  "Ghi nhận lưu ý: sẽ bỏ qua nhóm < 10 keyword và ưu tiên intent thương mại trong bước grouping."
+  Áp dụng xuyên suốt toàn bộ session: điều chỉnh prompt gửi vào filter/grouper, ngưỡng cảnh báo, tên nhóm, v.v.
+
+Sau đó xác nhận lại toàn bộ thông tin một lần trước khi xử lý.
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "keyword-labeler",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Tự động phân nhóm keyword SEO từ file Excel/CSV (lên đến 10.000 keyword) theo format chủ đề - hậu tố.",
   "author": {
     "name": "Minh",

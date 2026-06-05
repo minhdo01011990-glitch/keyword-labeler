@@ -375,7 +375,7 @@ def run_filter(topic: str = "", no_diacritic_threshold: int = 100) -> str:
     _state["topic"] = t
 
     try:
-        result = _filter_keywords(kws, topic=t, no_diacritic_threshold=no_diacritic_threshold)
+        result = _filter_keywords(kws, topic=t, no_diacritic_threshold=no_diacritic_threshold, client=_get_client())
     except TimeoutError as e:
         return _err(f"Timeout: {e}")
     except Exception as e:
@@ -505,7 +505,7 @@ def start_full_grouping(topic: str = "") -> str:
             job.progress_total = total
 
         try:
-            group_keywords(kws, t, on_progress=on_progress)
+            group_keywords(kws, t, on_progress=on_progress, client=_get_client())
         except TimeoutError as e:
             job.error = f"Timeout: {e}. Gọi start_full_grouping() để resume."
         except Exception as e:
@@ -599,7 +599,7 @@ def run_merge_pass(topic: str = "") -> str:
     _state["topic"] = t
 
     try:
-        result = _merge_groups(kws, topic=t)
+        result = _merge_groups(kws, topic=t, client=_get_client())
     except Exception as e:
         return _err(f"Lỗi merge pass: {e}")
 

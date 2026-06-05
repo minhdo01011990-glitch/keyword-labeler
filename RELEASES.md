@@ -1,5 +1,19 @@
 # Releases
 
+## v1.0.6 — 2026-06-05
+
+### Fix grouper: batch size quá lớn làm mất 75% keyword
+
+**Root cause:** Batch size 500 kw × ~30 token/entry ≈ 15,000 token output — vượt giới hạn thực tế của model (~8,192). JSON bị truncate → parse fail → 3 retry đều fail → toàn bộ chunk bị discard. Chạy thực tế: 665 kw → chỉ 171 được gán nhóm, 494 mất.
+
+**Fixes:**
+- `_BATCH_SIZE` 500 → **200**: output 200 kw ≈ 6,000 token — an toàn với mọi model
+- `_PHASE5B_MAX_TOKENS` 16,000 → **8,192**: đúng với giới hạn thực tế
+- Prompt thêm quy tắc: "phân nhóm **TẤT CẢ** keyword, không bỏ sót bất kỳ index nào"
+- **Partial-JSON recovery**: nếu response vẫn bị truncate, extract các entry hoàn chỉnh bằng regex thay vì discard toàn bộ chunk
+
+---
+
 ## v1.0.5 — 2026-06-05
 
 ### Tối ưu token — giảm nguy cơ hit limit Claude Pro

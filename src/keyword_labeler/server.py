@@ -535,13 +535,17 @@ def start_full_grouping(topic: str = "") -> str:
 @mcp.tool()
 def poll_grouping_status() -> str:
     """
-    Check background grouping status.
+    Check background grouping status. Returns ONLY lightweight metadata — never keyword data.
 
+    Call this at intervals (5–30 min) to avoid accumulating large conversation context.
     Returns one of:
       status="not_started"  — start_full_grouping() has not been called
-      status="running"      — still in progress (progress_done / progress_total)
-      status="error"        — grouping failed (error message included)
-      status="complete"     — all done (grouped_count summary included)
+      status="running"      — still in progress; fields: progress_done, progress_total
+      status="error"        — grouping failed; field: error (string)
+      status="complete"     — all done; fields: grouped_count, skipped_count, distinct_groups
+
+    After receiving status="complete", call run_merge_pass() then get_group_summary()
+    to retrieve actual group data. Do NOT call this tool in a tight loop.
     """
     global _grouping_job
 
@@ -889,7 +893,7 @@ def submit_grouping_batches(topic: str = "") -> str:
 
 @mcp.tool()
 def poll_batch_status() -> str:
-    """Alias for poll_grouping_status(). Referenced in SKILL.md."""
+    """Alias for poll_grouping_status(). Returns only metadata, never keyword data. Referenced in SKILL.md."""
     return poll_grouping_status()
 
 

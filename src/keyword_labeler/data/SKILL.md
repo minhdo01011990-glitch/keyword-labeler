@@ -134,6 +134,12 @@ Gọi `filter_keywords`:
 
 Hiển thị tóm tắt: "Đã lọc X keyword (Y sai chính tả, Z off-topic, W không dấu volume thấp)"
 
+**Checkpoint tiết kiệm token — sau khi filter xong:**
+Viết đúng 2–3 dòng tóm tắt trạng thái rồi tiếp tục ngay — không giải thích dài, không lặp lại thông tin đã có:
+```
+✅ Filter xong: X keyword giữ lại, Y bị lọc. Tiếp tục bước sample/grouping.
+```
+
 ### 4c. Nếu chạy sample trước
 Nếu user chọn sample (y), gọi `run_sample_grouping` với 100 keyword đại diện.
 
@@ -161,15 +167,64 @@ Hiển thị: "Đã xác định X loại hậu tố: [giá, lựa chọn, độ
 ### 4e. Phân nhóm toàn bộ (Batch API)
 Gọi `submit_grouping_batches` — chia thành các batch 500 keyword và submit lên Batch API.
 
-Hiển thị: "Đã submit N batch (tổng X keyword). Đang chờ kết quả..."
+Hiển thị: "Đã submit N batch (tổng X keyword). Batch API đang xử lý..."
 
-Gọi `poll_batch_status` định kỳ — hiển thị tiến độ:
+**Ngay sau khi submit**, hỏi user chọn chế độ poll:
+
 ```
-[████████░░] 8/10 batch hoàn thành (~4 phút còn lại)
+⏱ Batch đã gửi lên Anthropic API. Thời gian xử lý thường 30–60 phút.
+   Mỗi lần poll = 1 lượt hội thoại → poll quá dày tốn nhiều token.
+
+Chọn cách theo dõi kết quả:
+
+[1] Tự động — Claude kiểm tra định kỳ, bạn không cần làm gì
+    Khoảng cách giữa các lần kiểm tra:
+    → [5] [10] [15] [20] [25] [30] phút
+
+[2] Thủ công — Bạn tự kiểm tra trong Anthropic Console
+    Claude sẽ chờ bạn báo khi batch xong
 ```
+
+**Nếu chọn [1] Tự động (interval = N phút):**
+- Ghi nhận N phút user chọn
+- Dùng Bash tool để chờ: chia thành các lệnh `sleep` tuần tự, mỗi lệnh ≤ 540 giây (giới hạn timeout Bash là 600s), cho đến đủ N phút tổng cộng. Ví dụ: 15 phút = `sleep 540` rồi `sleep 360`.
+- Khi đủ thời gian, gọi `poll_batch_status`
+- **Chỉ hiển thị 1 dòng ngắn** sau mỗi lần poll (ví dụ: `⏳ 1/2 batch xong — chờ tiếp N phút...`) — không generate phân tích dài, không gọi thêm tool nào khác trong lúc chờ
+- Nếu `status == "complete"`: tiếp tục bước 4f
+- Nếu `status == "running"`: sleep tiếp và poll lại
+- Nếu `status == "error"` kéo dài 2 lần liên tiếp: thông báo lỗi chi tiết cho user
+
+**Nếu chọn [2] Thủ công:**
+Hiển thị hướng dẫn rồi chờ user báo hiệu — không gọi bất kỳ tool nào trong lúc chờ:
+
+```
+📋 Hướng dẫn kiểm tra batch thủ công:
+
+1. Mở trình duyệt → vào: https://console.anthropic.com/settings/workspaces/default/batches
+2. Tìm batch tên bắt đầu bằng "keyword-labeler-..."
+3. Chờ cột Status chuyển thành "ended" (thường 30–60 phút)
+4. Khi thấy "ended" → quay lại Claude và nhắn: "batch xong" hoặc "check kết quả"
+
+Claude sẽ gọi poll_batch_status ngay khi bạn báo hiệu.
+```
+- Khi user báo hiệu, gọi `poll_batch_status` 1 lần duy nhất
+- Nếu `status != "complete"`: hỏi user có muốn chờ thêm và check lại không
 
 ### 4f. Merge pass
 Sau khi tất cả batch xong, gọi `run_merge_pass` để gộp tên nhóm trùng nghĩa.
+
+**Checkpoint tiết kiệm token — sau khi merge pass xong:**
+Viết đúng 1–2 dòng tóm tắt rồi chuyển ngay sang Bước 5 — không tóm tắt lại toàn bộ quá trình:
+```
+✅ Merge pass xong: X nhóm → Y nhóm. Chuyển sang review.
+```
+
+---
+
+**Lưu ý về token khi review (Bước 5):**
+- Khi user gõ "xem `<số>`": gọi `get_group_detail` cho nhóm đó, hiển thị kết quả ngắn gọn (tối đa 20 keyword đầu nếu nhóm lớn)
+- Khi user gõ "tóm tắt": gọi `get_group_summary` — chỉ gọi 1 lần, không gọi lại nếu không cần thiết
+- Không tự động gọi thêm tool nào giữa các lệnh của user
 
 ---
 

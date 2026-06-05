@@ -20,13 +20,12 @@ from .data_loader import KeywordRow
 __all__ = ["group_keywords", "GrouperResult", "build_vocabulary"]
 
 _VOCAB_SAMPLE_SIZE = 1000
-_BATCH_SIZE = 500         # keywords per Phase 5b chunk (per memory.md)
+_BATCH_SIZE = 200         # keywords per Phase 5b chunk; 200×~30tok ≈ 6k — safe margin below 8192 limit
 _PHASE5A_MODEL = "claude-sonnet-4-6"
 _PHASE5B_MODEL = "claude-sonnet-4-6"
 _PHASE5A_MAX_TOKENS = 4096
-# Phase 5b output: ~30 tokens/entry × 500 entries ≈ 15,000 → need 16k.
-# Haiku is capped at 8192 and will truncate; use Sonnet (supports higher limits).
-_PHASE5B_MAX_TOKENS = 16000
+# Phase 5b output: ~30 tokens/entry × 200 entries ≈ 6,000 → use 8192 for safety.
+_PHASE5B_MAX_TOKENS = 8192
 _TOP_N_GROUPS = 50  # number of popular groups injected into each subsequent batch
 
 _INTENTS = frozenset({"informational", "commercial", "transactional", "navigational"})
@@ -189,12 +188,13 @@ def _build_phase5b_system(topic: str, vocabulary: list[str], top50: list[str]) -
         f'Bạn là chuyên gia SEO tiếng Việt. Phân nhóm keyword cho chủ đề: "{topic}".\n\n'
         f"Vocabulary — hậu tố được phép dùng: [{vocab_str}]{top50_section}\n\n"
         "Quy tắc:\n"
-        '1. Format nhóm: "chủ đề - hậu tố 1 - hậu tố 2" (hậu tố từ vocabulary)\n'
+        '1. Phân nhóm TẤT CẢ keyword trong danh sách — không bỏ sót bất kỳ index nào\n'
+        '2. Format nhóm: "chủ đề - hậu tố 1 - hậu tố 2" (hậu tố từ vocabulary)\n'
         '   Ví dụ: "sữa bột - giá - dưới 200k", "sữa bột - lựa chọn - 1 tuổi"\n'
-        "2. Hậu tố 2 tùy chọn — chỉ thêm khi cần phân biệt cụ thể hơn\n"
-        "3. Ưu tiên gộp vào nhóm đã có hơn tạo nhóm mới\n"
-        '4. Trường "spy" là gợi ý SpySERP — có thể bỏ qua nếu không phù hợp\n'
-        "5. Intent:\n"
+        "3. Hậu tố 2 tùy chọn — chỉ thêm khi cần phân biệt cụ thể hơn\n"
+        "4. Ưu tiên gộp vào nhóm đã có hơn tạo nhóm mới\n"
+        '5. Trường "spy" là gợi ý SpySERP — có thể bỏ qua nếu không phù hợp\n'
+        "6. Intent:\n"
         "   - informational: tìm hiểu, học hỏi\n"
         "   - commercial: so sánh, đánh giá trước khi mua\n"
         "   - transactional: muốn mua, đặt hàng ngay\n"
@@ -219,19 +219,45 @@ def _build_phase5b_user(keywords: list[KeywordRow], kw_indices: list[int]) -> st
 # Phase 5b — result parser
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _extract_partial_items(text: str) -> list[dict]:
+    """
+    Extract individual JSON objects from a possibly-truncated results array.
+    Finds every complete {...} object containing "index" and "group" fields.
+    Used as fallback when the outer JSON structure is broken by truncation.
+    """
+    items = []
+    for m in re.finditer(r'\{[^{}]*"index"\s*:\s*\d+[^{}]*\}', text):
+        try:
+            obj = json.loads(m.group())
+            if "index" in obj and "group" in obj:
+                items.append(obj)
+        except json.JSONDecodeError:
+            continue
+    return items
+
+
 def _parse_group_response(text: str) -> dict:
     """
     Parse Phase 5b response.
 
-    Raises json.JSONDecodeError on invalid/truncated JSON — BatchManager treats
-    this as a failure and retries the chunk. Structural issues (missing fields,
-    wrong types) fall back safely to empty string / "informational".
+    First tries strict JSON parse. If that fails (truncated response), falls back
+    to partial extraction via regex — salvages all complete entries from the
+    truncated text. Only raises if the partial extraction also yields nothing,
+    which triggers BatchManager retry.
 
     Returns {"assignments": {str(index): {"group": str, "intent": str}, ...}}.
     """
-    data = json.loads(_strip_json_fence(text))  # intentionally raises → triggers retry
+    stripped = _strip_json_fence(text)
+    try:
+        data = json.loads(stripped)
+        items = data.get("results", [])
+    except json.JSONDecodeError:
+        items = _extract_partial_items(stripped)
+        if not items:
+            raise  # no salvageable data → trigger retry
+
     assignments: dict[str, dict] = {}
-    for item in data.get("results", []):
+    for item in items:
         if not isinstance(item, dict):
             continue
         idx_raw = item.get("index")

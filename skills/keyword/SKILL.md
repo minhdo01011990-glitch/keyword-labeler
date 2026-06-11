@@ -8,7 +8,7 @@ description: >
   Triggers the full keyword clustering pipeline: input collection →
   filter → group → review → export Excel/Markdown.
 metadata:
-  version: "1.0.3"
+  version: "1.0.6"
 ---
 
 # Keyword Labeler
@@ -25,14 +25,12 @@ Gọi MCP tool `check_api_key` ngay khi user gọi `/keyword`.
 
 **Nếu `is_valid: false` hoặc `has_key: false`**: hiển thị thông báo:
 
-```
-⚠️  ANTHROPIC API KEY chưa được cấu hình hoặc không hợp lệ.
-
-Keyword Labeler cần API key từ Anthropic để hoạt động.
-Lấy key miễn phí tại: https://console.anthropic.com/settings/keys
-
-Paste API key của bạn vào đây (bắt đầu bằng sk-ant-...):
-```
+> ⚠️ **ANTHROPIC API KEY chưa được cấu hình hoặc không hợp lệ.**
+>
+> Keyword Labeler cần API key từ Anthropic để hoạt động.
+> Lấy key miễn phí tại: https://console.anthropic.com/settings/keys
+>
+> Paste API key của bạn vào đây (bắt đầu bằng `sk-ant-...`):
 
 Sau khi user cung cấp key, gọi `save_api_key` để xác minh và lưu lại.
 
@@ -45,62 +43,62 @@ Sau khi user cung cấp key, gọi `save_api_key` để xác minh và lưu lại
 
 Hiển thị form sau và chờ user điền đầy đủ trước khi tiếp tục:
 
-```
-=== KEYWORD LABELER ===
+---
+### 📋 KEYWORD LABELER — Thông tin đầu vào
 
-Vui lòng cung cấp thông tin sau:
+**[1] Chủ đề SEO** *(bắt buộc)*
+Mô tả ngắn gọn lĩnh vực SEO bạn đang triển khai.
+*Ví dụ: "sữa bột cho trẻ em", "laptop gaming", "dịch vụ kế toán"*
+→ ___
 
-[1] Chủ đề SEO (bắt buộc)
-    Mô tả ngắn gọn lĩnh vực SEO bạn đang triển khai.
-    Ví dụ: "sữa bột cho trẻ em", "laptop gaming", "dịch vụ kế toán"
-    → 
+**[2] File keyword** *(bắt buộc)*
+Đường dẫn tới file Excel (.xlsx) hoặc CSV. File cần có cột `keyword` và `volume`.
+→ ___
 
-[2] File keyword (bắt buộc)
-    Đường dẫn tới file Excel (.xlsx) hoặc CSV.
-    File cần có cột "keyword" và "volume" (hoặc tương đương).
-    → 
+**[3] File SpySERP** *(tuỳ chọn)*
+Đường dẫn tới file export SpySERP (cột keyword + url_1 đến url_10).
+Nhập `bỏ qua` nếu không có.
+→ ___
 
-[3] File SpySERP (tuỳ chọn)
-    Đường dẫn tới file export CSV/Excel từ SpySERP.
-    File cần có cột keyword và các cột URL ranking (url_1 đến url_10).
-    Nhập "bỏ qua" nếu không có.
-    → 
+**[4] Xử lý branded keyword**
 
-[4] Xử lý branded keyword
-    [1] Nhóm riêng theo từng thương hiệu  (vd: sữa bột - Enfamil, sữa bột - Nan)
-    [2] Gộp vào nhóm "thương hiệu" chung  (vd: sữa bột - thương hiệu)
-    [3] Loại bỏ toàn bộ branded keyword
-    [4] Giữ nguyên, không xử lý đặc biệt
-    → 
+| Lựa chọn | Mô tả |
+|---|---|
+| **[1]** | Nhóm riêng theo từng thương hiệu *(vd: sữa bột - Enfamil)* |
+| **[2]** | Gộp tất cả vào nhóm "thương hiệu" chung |
+| **[3]** | Loại bỏ hoàn toàn branded keyword |
+| **[4]** | Giữ nguyên, không xử lý đặc biệt |
 
-[5] Ngưỡng volume keyword không dấu (mặc định: 100)
-    Keyword không dấu (vd: "sua bot") có volume ≥ ngưỡng sẽ được giữ lại.
-    Nhập số hoặc nhấn Enter để dùng mặc định (100).
-    → 
+→ ___
 
-[6] Output format
-    [1] Excel (.xlsx) — gồm 3 sheet: Labeled / Removed / Summary
-    [2] Markdown (.md)
-    → 
+**[5] Ngưỡng volume keyword không dấu** *(mặc định: 100)*
+Keyword không dấu (vd: `sua bot`) có volume ≥ ngưỡng sẽ được giữ lại. Nhấn Enter để dùng mặc định.
+→ ___
 
-[7] Chạy sample trước? (y/n, mặc định: y)
-    Xử lý thử 100 keyword đầu tiên để kiểm tra chất lượng
-    trước khi chạy toàn bộ danh sách.
-    → 
+**[6] Output format**
 
-[8] Thông tin lưu ý (tuỳ chọn)
-    Các yêu cầu bổ sung, ưu tiên đặc biệt, hoặc điều chỉnh riêng cho lần chạy này.
-    Ví dụ: "ưu tiên nhóm theo intent thương mại", "không tạo nhóm có ít hơn 10 keyword",
-            "tên nhóm phải ngắn gọn tối đa 5 từ", "bỏ qua các keyword chứa tên đối thủ".
-    Nhập "bỏ qua" nếu không có yêu cầu gì thêm.
-    → 
-```
+| Lựa chọn | Mô tả |
+|---|---|
+| **[1]** | Excel (.xlsx) — 3 sheet: Labeled / Removed / Summary |
+| **[2]** | Markdown (.md) |
+
+→ ___
+
+**[7] Chạy sample trước?** *(mặc định: y)*
+Xử lý thử 100 keyword để kiểm tra chất lượng trước khi chạy toàn bộ.
+→ ___
+
+**[8] Thông tin lưu ý** *(tuỳ chọn)*
+Yêu cầu bổ sung, ưu tiên đặc biệt cho lần chạy này.
+*Ví dụ: "ưu tiên intent thương mại", "tên nhóm tối đa 5 từ", "không tạo nhóm < 10 keyword"*
+Nhập `bỏ qua` nếu không có.
+→ ___
+
+---
 
 Sau khi user nhập xong, phân tích mục [8] và xác định các điều chỉnh cần áp dụng:
 - Nếu user không có lưu ý → tiếp tục bình thường.
-- Nếu có lưu ý → tóm tắt ngắn cách bạn sẽ điều chỉnh workflow, ví dụ:
-  "Ghi nhận lưu ý: sẽ bỏ qua nhóm < 10 keyword và ưu tiên intent thương mại trong bước grouping."
-  Áp dụng xuyên suốt toàn bộ session: điều chỉnh prompt gửi vào filter/grouper, ngưỡng cảnh báo, tên nhóm, v.v.
+- Nếu có lưu ý → tóm tắt ngắn cách sẽ điều chỉnh, ví dụ: *"Ghi nhận: sẽ bỏ qua nhóm < 10 keyword và ưu tiên intent thương mại."* Áp dụng xuyên suốt toàn bộ session.
 
 Sau đó xác nhận lại toàn bộ thông tin một lần trước khi xử lý.
 
@@ -110,12 +108,16 @@ Sau đó xác nhận lại toàn bộ thông tin một lần trước khi xử l
 
 Gọi MCP tool `load_keyword_file` với đường dẫn file keyword.
 
-Kết quả trả về:
-- Tổng số dòng
-- Tên các cột tìm thấy
-- Cảnh báo nếu thiếu cột keyword hoặc volume
+Hiển thị kết quả dạng bảng:
 
-Nếu có file SpySERP, gọi thêm `load_spyserp_file`.
+| Thống kê | Giá trị |
+|---|---|
+| Tổng dòng trong file | X |
+| Trùng lặp đã xoá | Y |
+| Keyword hợp lệ | **Z** |
+| Keyword volume = 0 | W |
+
+Nếu có file SpySERP, gọi thêm `load_spyserp_file` và hiển thị: *"SpySERP: matched W keyword."*
 
 Nếu có lỗi (file không tồn tại, sai định dạng), báo lỗi rõ ràng và hỏi lại đường dẫn — không dừng toàn bộ workflow.
 
@@ -123,21 +125,23 @@ Nếu có lỗi (file không tồn tại, sai định dạng), báo lỗi rõ r�
 
 ## Bước 3 — Ước tính chi phí và xác nhận
 
-Gọi MCP tool `estimate_cost` để tính:
-- Số keyword cần xử lý
-- Token ước tính
-- Chi phí Batch API ước tính (USD)
+Gọi MCP tool `estimate_cost`. Hiển thị kết quả:
 
-Hiển thị cho user:
-```
-=== ƯỚC TÍNH ===
-Số keyword: X
-Token ước tính: ~Yk token
-Chi phí API ước tính: ~$Z.ZZ (Batch API, giảm 50%)
-Thời gian xử lý: ~N phút
+### 💰 Ước tính chi phí
 
-Tiếp tục? (y/n):
-```
+| Hạng mục | Chi tiết |
+|---|---|
+| Keyword đầu vào | X |
+| Keyword qua filter | ~Y |
+| Keyword qua grouping | ~Z |
+| Chi phí filter | ~$A (Haiku Batch API) |
+| Chi phí grouping | ~$B (Sonnet Batch API) |
+| **Tổng chi phí** | **~$C** |
+| Thời gian ước tính | ~N phút |
+
+> ℹ️ Giá Batch API giảm 50% so với standard. Ước tính có thể lệch ±30%.
+
+**Tiếp tục xử lý? (y/n)**
 
 Nếu user chọn "n", dừng lại và hỏi xem có muốn điều chỉnh gì không.
 
@@ -145,110 +149,112 @@ Nếu user chọn "n", dừng lại và hỏi xem có muốn điều chỉnh gì
 
 ## Bước 4 — Xử lý (chạy theo thứ tự)
 
-Thông báo tiến độ sau mỗi bước hoàn thành.
-
 ### 4a. Pre-processing
-Gọi `preprocess_keywords` với:
-- Cấu hình brand handling (lựa chọn [4])
-- Ngưỡng volume không dấu (lựa chọn [5])
-- Dữ liệu SpySERP (nếu có)
+
+Gọi `preprocess_keywords`. Hiển thị kết quả ngắn:
+
+> ✅ Pre-processing xong: **X** branded keyword *(mode: Y)*, **Z** keyword SpySERP tagged.
 
 ### 4b. Filter keyword xấu
-Gọi `filter_keywords`:
-- Lọc sai chính tả, off-topic
-- Phân loại keyword không dấu theo ngưỡng volume
 
-Hiển thị tóm tắt: "Đã lọc X keyword (Y sai chính tả, Z off-topic, W không dấu volume thấp)"
+Gọi `filter_keywords` để lọc sai chính tả, off-topic, không dấu volume thấp.
 
-**Checkpoint tiết kiệm token — sau khi filter xong:**
-Viết đúng 2–3 dòng tóm tắt trạng thái rồi tiếp tục ngay — không giải thích dài, không lặp lại thông tin đã có:
-```
-✅ Filter xong: X keyword giữ lại, Y bị lọc. Tiếp tục bước sample/grouping.
-```
+Sau khi xong, hiển thị bảng tóm tắt:
+
+| Kết quả filter | Số lượng |
+|---|---|
+| ✅ Giữ lại | X |
+| ❌ Sai chính tả / off-topic | Y |
+| ❌ Không dấu, volume thấp | Z |
+| **Tổng bị lọc** | **W** |
+
+**Checkpoint:** Viết đúng 1 dòng rồi tiếp tục ngay:
+> ✅ Filter xong: **X** giữ lại, **Y** bị lọc. Tiếp tục bước sample/grouping.
 
 ### 4c. Nếu chạy sample trước
+
 Nếu user chọn sample (y), gọi `run_sample_grouping` với 100 keyword đại diện.
 
-Hiển thị kết quả sample:
-```
-=== KẾT QUẢ SAMPLE (100 keyword) ===
-Nhóm tạo ra: N nhóm
-Ví dụ:
-  - sữa bột - lựa chọn - 1 tuổi (X kw)
-  - sữa bột - thương hiệu - Enfamil (Y kw)
-  ...
+Hiển thị kết quả dạng bảng:
 
-Chất lượng nhóm có đạt yêu cầu không?
-[y] Tiếp tục xử lý toàn bộ
-[n] Dừng lại, tôi muốn điều chỉnh prompt/cấu hình
-```
+### 🔍 Kết quả Sample (100 keyword)
 
-Nếu user không hài lòng, dừng lại và hỏi muốn thay đổi gì (chủ đề, cách xử lý brand...).
+| # | Nhóm | Keywords |
+|---|---|---|
+| 1 | sữa bột - lựa chọn - 1 tuổi | 12 |
+| 2 | sữa bột - thương hiệu - Enfamil | 8 |
+| 3 | sữa bột - giá - bình dân | 7 |
+| ... | ... | ... |
+
+**Vocabulary phát hiện:** `giá`, `lựa chọn`, `độ tuổi`, `thương hiệu`, `review`, `mua ở đâu`
+
+> **Chất lượng nhóm có đạt yêu cầu không?**
+> - **[y]** Tiếp tục xử lý toàn bộ
+> - **[n]** Dừng lại, tôi muốn điều chỉnh
+
+Nếu user không hài lòng, dừng lại và hỏi muốn thay đổi gì.
 
 ### 4d. Build vocabulary
-Gọi `build_vocabulary` — phân tích 1.000 keyword đại diện để tạo danh sách hậu tố cố định.
 
-Hiển thị: "Đã xác định X loại hậu tố: [giá, lựa chọn, độ tuổi, thương hiệu, ...]"
+Gọi `expose_build_vocabulary` — phân tích 1.000 keyword đại diện để tạo danh sách hậu tố cố định.
+
+Hiển thị: *"Đã xác định **X** hậu tố: `giá`, `lựa chọn`, `độ tuổi`, `thương hiệu`, ..."*
 
 ### 4e. Phân nhóm toàn bộ (Batch API)
-Gọi `submit_grouping_batches` — chia thành các batch 500 keyword và submit lên Batch API.
 
-Hiển thị: "Đã submit N batch (tổng X keyword). Batch API đang xử lý..."
+Gọi `submit_grouping_batches` — chia thành các batch **200 keyword** và submit lên Batch API.
+
+Hiển thị:
+> 🚀 Đã submit **N** request trong 1 batch job (tổng **X** keyword). Batch API đang xử lý...
 
 **Ngay sau khi submit**, hỏi user chọn chế độ poll:
 
-```
-⏱ Batch đã gửi lên Anthropic API. Thời gian xử lý thường 30–60 phút.
-   Mỗi lần poll = 1 lượt hội thoại → poll quá dày tốn nhiều token.
+---
+### ⏱ Chọn cách theo dõi kết quả
 
-Chọn cách theo dõi kết quả:
+Batch API thường mất **30–60 phút**. Mỗi lần poll = 1 lượt hội thoại → poll quá dày tốn nhiều token.
 
-[1] Tự động — Claude kiểm tra định kỳ, bạn không cần làm gì
-    Khoảng cách giữa các lần kiểm tra:
-    → [5] [10] [15] [20] [25] [30] phút
+| Chế độ | Mô tả |
+|---|---|
+| **[1] Tự động** | Claude kiểm tra định kỳ, bạn không cần làm gì |
+| **[2] Thủ công** | Bạn tự kiểm tra trong Anthropic Console, báo Claude khi xong |
 
-[2] Thủ công — Bạn tự kiểm tra trong Anthropic Console
-    Claude sẽ chờ bạn báo khi batch xong
-```
+**Nếu chọn [1]** — chọn khoảng cách giữa các lần kiểm tra:
+`[5]` `[10]` `[15]` `[20]` `[25]` `[30]` phút
+
+---
 
 **Nếu chọn [1] Tự động (interval = N phút):**
-- Ghi nhận N phút user chọn
-- Dùng Bash tool để chờ: chia thành các lệnh `sleep` tuần tự, mỗi lệnh ≤ 540 giây (giới hạn timeout Bash là 600s), cho đến đủ N phút tổng cộng. Ví dụ: 15 phút = `sleep 540` rồi `sleep 360`.
+- Dùng Bash tool để chờ: chia thành các lệnh `sleep` tuần tự, mỗi lệnh ≤ 540 giây, cho đến đủ N phút tổng cộng. Ví dụ: 15 phút = `sleep 540` rồi `sleep 360`.
 - Khi đủ thời gian, gọi `poll_batch_status`
-- **Chỉ hiển thị 1 dòng ngắn** sau mỗi lần poll (ví dụ: `⏳ 1/2 batch xong — chờ tiếp N phút...`) — không generate phân tích dài, không gọi thêm tool nào khác trong lúc chờ
+- **Chỉ hiển thị 1 dòng ngắn** sau mỗi lần poll: `⏳ Đang xử lý — chờ tiếp N phút...` hoặc `✅ Batch hoàn thành!`
 - Nếu `status == "complete"`: tiếp tục bước 4f
 - Nếu `status == "running"`: sleep tiếp và poll lại
 - Nếu `status == "error"` kéo dài 2 lần liên tiếp: thông báo lỗi chi tiết cho user
 
 **Nếu chọn [2] Thủ công:**
-Hiển thị hướng dẫn rồi chờ user báo hiệu — không gọi bất kỳ tool nào trong lúc chờ:
 
-```
-📋 Hướng dẫn kiểm tra batch thủ công:
+> 📋 **Hướng dẫn kiểm tra batch thủ công:**
+>
+> 1. Mở trình duyệt → vào: https://console.anthropic.com/settings/workspaces/default/batches
+> 2. Tìm batch có nhiều request nhất (batch mới nhất)
+> 3. Chờ cột **Status** chuyển thành `ended` (thường 30–60 phút)
+> 4. Khi thấy `ended` → quay lại Claude và nhắn: **"batch xong"** hoặc **"check kết quả"**
 
-1. Mở trình duyệt → vào: https://console.anthropic.com/settings/workspaces/default/batches
-2. Tìm batch tên bắt đầu bằng "keyword-labeler-..."
-3. Chờ cột Status chuyển thành "ended" (thường 30–60 phút)
-4. Khi thấy "ended" → quay lại Claude và nhắn: "batch xong" hoặc "check kết quả"
-
-Claude sẽ gọi poll_batch_status ngay khi bạn báo hiệu.
-```
 - Khi user báo hiệu, gọi `poll_batch_status` 1 lần duy nhất
-- Nếu `status != "complete"`: hỏi user có muốn chờ thêm và check lại không
+- Nếu `status != "complete"`: hỏi user có muốn chờ thêm không
 
 ### 4f. Merge pass
+
 Sau khi tất cả batch xong, gọi `run_merge_pass` để gộp tên nhóm trùng nghĩa.
 
-**Checkpoint tiết kiệm token — sau khi merge pass xong:**
-Viết đúng 1–2 dòng tóm tắt rồi chuyển ngay sang Bước 5 — không tóm tắt lại toàn bộ quá trình:
-```
-✅ Merge pass xong: X nhóm → Y nhóm. Chuyển sang review.
-```
+**Checkpoint:** Viết đúng 1 dòng rồi chuyển sang Bước 5:
+> ✅ Merge pass xong: **X** nhóm → **Y** nhóm. Chuyển sang review.
 
 ---
 
 **Lưu ý về token khi review (Bước 5):**
-- Khi user gõ "xem `<số>`": gọi `get_group_detail` cho nhóm đó, hiển thị kết quả ngắn gọn (tối đa 20 keyword đầu nếu nhóm lớn)
+- Khi user gõ "xem `<số>`": gọi `get_group_detail`, hiển thị tối đa 20 keyword đầu nếu nhóm lớn
 - Khi user gõ "tóm tắt": gọi `get_group_summary` — chỉ gọi 1 lần, không gọi lại nếu không cần thiết
 - Không tự động gọi thêm tool nào giữa các lệnh của user
 
@@ -256,27 +262,38 @@ Viết đúng 1–2 dòng tóm tắt rồi chuyển ngay sang Bước 5 — khô
 
 ## Bước 5 — Review kết quả
 
-Hiển thị summary và cho phép user chỉnh sửa trước khi export:
+Gọi `get_group_summary` và hiển thị:
 
-```
-=== KẾT QUẢ PHÂN NHÓM ===
-Tổng: X keyword → Y nhóm (Z keyword bị lọc)
+### 📊 Kết quả phân nhóm
 
- #   Nhóm                              Keywords   Volume
- 1   sữa bột - lựa chọn - 1 tuổi          234    45,000
- 2   sữa bột - thương hiệu - Enfamil        89    12,000
- 3   sữa bột - giá - bình dân               67     8,500
-...
-⚠️  Nhóm #5 có 620 keyword — cân nhắc chia nhỏ
-⚠️  Nhóm #12 chỉ có 3 keyword — cân nhắc gộp vào nhóm khác
+| Thống kê | Giá trị |
+|---|---|
+| Tổng keyword đầu vào | X |
+| Đã phân nhóm | Y |
+| Chưa phân nhóm | Z |
+| Bị lọc | W |
+| Số nhóm | **N** |
 
-Lệnh có thể dùng:
-  xem <số>          — xem chi tiết keyword của nhóm
-  merge <số> <số>   — gộp 2 nhóm lại
-  rename <số> <tên> — đổi tên nhóm
-  export            — xuất file kết quả
-  reset             — huỷ thay đổi, về kết quả gốc
-```
+| # | Nhóm | Keywords | Volume |
+|---|---|---|---|
+| 1 | sữa bột - lựa chọn - 1 tuổi | 234 | 45,000 |
+| 2 | sữa bột - thương hiệu - Enfamil | 89 | 12,000 |
+| 3 | sữa bột - giá - bình dân | 67 | 8,500 |
+| ... | ... | ... | ... |
+
+> ⚠️ Nhóm #5 có 620 keyword — cân nhắc chia nhỏ
+> ⚠️ Nhóm #12 chỉ có 3 keyword — cân nhắc gộp vào nhóm khác
+
+---
+**Lệnh có thể dùng:**
+
+| Lệnh | Tác dụng |
+|---|---|
+| `xem <số>` | Xem chi tiết keyword của nhóm |
+| `merge <số> <số>` | Gộp 2 nhóm lại |
+| `rename <số> <tên>` | Đổi tên nhóm |
+| `export` | Xuất file kết quả |
+| `reset` | Huỷ thay đổi, về kết quả gốc |
 
 Lặp lại vòng review cho đến khi user gõ "export".
 
@@ -284,21 +301,24 @@ Lặp lại vòng review cho đến khi user gõ "export".
 
 ## Bước 6 — Export
 
-Gọi MCP tool `export_results` với format đã chọn.
+Gọi MCP tool `export_results` với format đã chọn. Hiển thị kết quả:
 
-Thông báo đường dẫn file output:
-```
-✓ Đã xuất: /Users/.../keywords_labeled_2024-01-15.xlsx
-  - Sheet "Labeled":  8,234 keyword đã phân nhóm
-  - Sheet "Removed":  1,766 keyword bị lọc
-  - Sheet "Summary":  47 nhóm, tổng volume 2,450,000
-```
+### ✅ Xuất file thành công
+
+| Thông tin | Chi tiết |
+|---|---|
+| 📁 File | `/Users/.../keywords_labeled_2024-01-15.xlsx` |
+| 📋 Sheet Labeled | X keyword đã phân nhóm |
+| 🗑️ Sheet Removed | Y keyword bị lọc |
+| 📊 Sheet Summary | Z nhóm, tổng volume W |
 
 ---
 
 ## Lưu ý xử lý lỗi
 
-- **File không tìm thấy**: hỏi lại đường dẫn, gợi ý kiểm tra khoảng trắng trong tên file
-- **Batch API lỗi**: thông báo rõ batch nào lỗi, tự retry, nếu vẫn lỗi hỏi user có muốn tiếp tục với kết quả partial không
-- **Thiếu ANTHROPIC_API_KEY**: hướng dẫn set env var hoặc tạo file `~/.anthropic_key`
-- **File quá lớn (>10.000 dòng)**: cảnh báo và hỏi user có muốn giới hạn số dòng không
+| Lỗi | Xử lý |
+|---|---|
+| File không tìm thấy | Hỏi lại đường dẫn, gợi ý kiểm tra khoảng trắng trong tên file |
+| Batch API lỗi | Thông báo rõ batch nào lỗi, tự retry; nếu vẫn lỗi hỏi user có muốn tiếp tục partial không |
+| Thiếu ANTHROPIC_API_KEY | Hướng dẫn set env var hoặc tạo file `~/.anthropic_key` |
+| File quá lớn (>10.000 dòng) | Cảnh báo và hỏi user có muốn giới hạn số dòng không |

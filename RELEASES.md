@@ -1,5 +1,26 @@
 # Releases
 
+## v1.0.7 — 2026-06-11
+
+### UI: chuyển toàn bộ form và bảng sang markdown visualization
+
+Tất cả form, bảng kết quả và thông báo trong SKILL.md được chuyển từ plain-text code block sang markdown tables và formatted output — render đẹp trong Claude Desktop / Cowork plugin.
+
+**Thay đổi:**
+- **Bước 1 — Input form**: chuyển từ code block sang markdown bold labels + tables cho lựa chọn [4] và [6]
+- **Bước 2 — Load data**: hiển thị stats dạng `| Thống kê | Giá trị |` table
+- **Bước 3 — Ước tính chi phí**: table đầy đủ các hạng mục chi phí
+- **Bước 4b — Filter**: table tóm tắt kết quả lọc
+- **Bước 4c — Sample**: bảng nhóm mẫu thay cho plain-text list
+- **Bước 4e — Poll mode**: table chế độ poll, blockquote hướng dẫn thủ công
+- **Bước 5 — Review**: 2 tables (thống kê tổng + danh sách nhóm), table lệnh điều khiển
+- **Bước 6 — Export**: table thông tin file output
+- **Lưu ý lỗi**: table mapping lỗi → xử lý
+- Fix metadata version trong SKILL.md từ `1.0.3` → `1.0.6`
+- Fix step 4e: batch size `500` → `200` (đồng bộ với fix v1.0.6)
+
+---
+
 ## v1.0.6 — 2026-06-05
 
 ### Fix grouper: batch size quá lớn làm mất 75% keyword

@@ -518,7 +518,7 @@ def start_full_grouping(topic: str = "") -> str:
     job.thread.start()
 
     eligible_count = sum(1 for r in kws if not r.is_removed)
-    n_batches = (eligible_count + 499) // 500
+    n_batches = (eligible_count + 199) // 200
 
     return _ok({
         "status": "started",

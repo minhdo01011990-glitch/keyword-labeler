@@ -219,12 +219,15 @@ class BatchManager:
         cls,
         path: Path,
         job_name: str,
+        num_chunks: int | None = None,
     ) -> "BatchManager | None":
         """
         Return a BatchManager if a valid state file exists for this job, else None.
 
-        Simpler alternative to resume() when the caller does not know num_chunks
-        upfront — the value is read from the state file itself.
+        If num_chunks is provided and the state file has a different chunk count
+        (e.g. eligible keyword count changed between runs), returns None so the
+        caller starts a fresh job — prevents the remainder chunk from being silently
+        skipped when the old state has fewer chunks than the new run needs.
 
         Raises ValueError if the file exists but has mismatched version or job_name.
         """
@@ -243,6 +246,8 @@ class BatchManager:
                 f"State file {path} thuộc job '{data.get('job_name')}', "
                 f"khác job hiện tại '{job_name}'. Dùng state_path khác."
             )
+        if num_chunks is not None and data.get("num_chunks") != num_chunks:
+            return None  # chunk count changed — discard stale state, start fresh
         bm._data = data
         return bm
 

@@ -1,5 +1,18 @@
 # Releases
 
+## v1.0.8 — 2026-06-12
+
+### Fix: keyword lẻ cuối không được gửi batch khi chạy lại cùng topic
+
+**Root cause:** `BatchManager.resume_if_exists()` không kiểm tra `num_chunks` — khi eligible keyword count thay đổi giữa 2 lần chạy cùng topic (ví dụ: filter cho kết quả khác, hoặc dùng file keyword khác), state file cũ có 8 chunks nhưng run mới cần 9 chunks. `resume_if_exists()` load state cũ, `is_complete()` = True ngay lập tức → chunk cuối (50–100–150 keyword) không bao giờ được submit.
+
+**Fixes:**
+- `BatchManager.resume_if_exists()`: thêm tham số `num_chunks`; nếu state file có số chunk khác với run hiện tại → trả về `None` để force start fresh
+- `grouper.py`: truyền `num_chunks=len(chunk_payloads)` khi gọi `resume_if_exists()`
+- `server.py`: sửa `n_batches` display từ `(eligible + 499) // 500` → `(eligible + 199) // 200` (đồng bộ với batch size thực tế 200)
+
+---
+
 ## v1.0.7 — 2026-06-11
 
 ### UI: chuyển toàn bộ form và bảng sang markdown visualization

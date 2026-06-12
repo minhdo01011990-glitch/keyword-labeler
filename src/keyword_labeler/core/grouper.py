@@ -385,7 +385,7 @@ def group_keywords(
     ]
     total_chunks = len(chunk_payloads)
 
-    bm = BatchManager.resume_if_exists(sp, job_name=job_name)
+    bm = BatchManager.resume_if_exists(sp, job_name=job_name, num_chunks=len(chunk_payloads))
     if bm is None:
         bm = BatchManager.create(sp, job_name=job_name, chunk_payloads=chunk_payloads)
 
